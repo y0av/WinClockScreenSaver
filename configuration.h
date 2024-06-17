@@ -15,6 +15,7 @@ public:
 	int numStars = 250;
 	int fontSize = 40;
 	std::string fontName = "David";
+	std::string clockFormat = "%H:%M:%S";
 
 private:
 	static constexpr LPCSTR REGISTRY_PATH = "Software\\Microsoft\\Windows\\CurrentVersion\\Screensavers";

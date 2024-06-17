@@ -35,6 +35,9 @@ int CALLBACK EnumFontsProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWOR
 // Return TRUE if the function successfully process the message.
 BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
+	HWND hwndComboBox;
+	int selectedIndex;
+
 	switch (uMsg) {
 		case WM_INITDIALOG: {
 			// Initialize the configuration
@@ -58,6 +61,15 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 			lf.lfCharSet = DEFAULT_CHARSET;
 
 			EnumFontFamiliesEx(hdc, &lf, (FONTENUMPROC)EnumFontsProc, (LPARAM)GetDlgItem(hDlg, IDC_COMBO_FONTNAME), 0); // Corrected variable name here
+
+			// Populate the clock format combobox
+			HWND hwndClockFormatCombo = GetDlgItem(hDlg, IDC_COMBO_CLOCKFORMAT);
+			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%H:%M:%S");
+			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%H:%M");
+			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%I:%M:%S %p"); // 12-hour format with AM/PM
+			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%I:%M %p");    // 12-hour format without seconds
+			SendMessage(hwndClockFormatCombo, CB_SETCURSEL, 0, 0); // Selects the first format by default
+
 			ReleaseDC(hDlg, hdc); // Corrected variable name here
 
 			return TRUE;
@@ -79,12 +91,30 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 					SetDlgItemInt(hDlg, IDC_TEXT_NUMOFSTARS, 250, FALSE);
 					SetDlgItemInt(hDlg, IDC_TEXT_INTERVAL,   20,  FALSE);
 					SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_SETCURSEL, 0, 0);
+
 					return TRUE;
 				case IDOK:
 					config.numStars      = SendDlgItemMessage(hDlg, IDC_SLIDER_NUMOFSTARS, TBM_GETPOS, 0, 0);
 					config.fontSize = SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL,   TBM_GETPOS, 0, 0);
 					// Get the selected font name
 					config.fontName = SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_GETCURSEL, 0, 0);
+					// Get the selected clock format
+					// Assuming hWndDialog is the handle to your dialog window
+					hwndComboBox = GetDlgItem(hDlg, IDC_COMBO_CLOCKFORMAT);
+					selectedIndex = SendMessage(hDlg, CB_GETCURSEL, 0, 0);
+
+					if (selectedIndex != CB_ERR) {
+						// Get the length of the selected item's text
+						int textLen = SendMessage(hwndComboBox, CB_GETLBTEXTLEN, (WPARAM)selectedIndex, 0);
+						// Allocate buffer for the text (+1 for the null terminator)
+						std::vector<char> buffer(textLen + 1);
+						// Retrieve the selected item's text
+						SendMessage(hwndComboBox, CB_GETLBTEXT, (WPARAM)selectedIndex, (LPARAM)buffer.data());
+						// Convert to std::string (or std::wstring if using Unicode)
+						std::string selectedFormat(buffer.begin(), buffer.end() - 1); // -1 to exclude the null terminator
+						// Now you can use selectedFormat as needed
+						config.clockFormat = selectedFormat;
+					}
 					config.Commit();
 					// Pass through to next case
 				case IDCANCEL:
@@ -143,41 +173,40 @@ constexpr uint32_t IDM_EXIT = 11002;
 
 static LRESULT WINAPI DebugScreenSaverProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	switch (uMsg) {
-		case WM_CREATE: {
-			HMENU hMenuBar = CreateMenu();
-			HMENU hFileMenu = CreatePopupMenu();
-			AppendMenu(hFileMenu, MF_STRING, IDM_CONFIGURE, "&Configure");
-			AppendMenu(hFileMenu, MF_SEPARATOR, 0, nullptr);
-			AppendMenu(hFileMenu, MF_STRING, IDM_EXIT, "&Exit");
-			AppendMenu(hMenuBar, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hFileMenu), "&File");
-			SetMenu(hWnd, hMenuBar);
-			break;
-		}
-		case WM_DESTROY:
-			PostQuitMessage(0);
-			break;
-		case WM_COMMAND:
-			switch (LOWORD(wParam)) {
-				case IDM_CONFIGURE: {
-					HINSTANCE hInst = GetModuleHandle(nullptr);
-					if (!RegisterDialogClasses(hInst)) {
-						break;
-					}
-					// TODO Use GetWindowLongPtr instead, and pass app as a pointer?
-					app.Pause();
-					//DialogBox(hInst, MAKEINTRESOURCE(DLG_SCRNSAVECONFIGURE), hWnd, ScreenSaverConfigureDialog);
-					app.Unpause();
-					app.Reload();
-					break;
-				}
-				case IDM_EXIT:
-					SendMessage(hWnd, WM_CLOSE, 0, 0);
-					break;
-			}
-			break;
-	}
-	return ScreenSaverProc(hWnd, uMsg, wParam, lParam);
+    switch (uMsg) {
+        case WM_CREATE: {
+            HMENU hMenuBar = CreateMenu();
+            HMENU hFileMenu = CreatePopupMenu();
+            AppendMenu(hFileMenu, MF_STRING, IDM_CONFIGURE, "&Configure");
+            AppendMenu(hFileMenu, MF_SEPARATOR, 0, nullptr);
+            AppendMenu(hFileMenu, MF_STRING, IDM_EXIT, "&Exit");
+            AppendMenu(hMenuBar, MF_STRING | MF_POPUP, reinterpret_cast<UINT_PTR>(hFileMenu), "&File");
+            SetMenu(hWnd, hMenuBar);
+            break;
+        }
+        case WM_DESTROY:
+            PostQuitMessage(0);
+            break;
+        case WM_COMMAND:
+            switch (LOWORD(wParam)) {
+                case IDM_CONFIGURE: {
+                    HINSTANCE hInst = GetModuleHandle(nullptr);
+                    if (!RegisterDialogClasses(hInst)) {
+                        break;
+                    }
+                    app.Pause();
+                    DialogBox(hInst, MAKEINTRESOURCE(DLG_SCRNSAVECONFIGURE), hWnd, reinterpret_cast<DLGPROC>(ScreenSaverConfigureDialog));
+                    app.Unpause();
+                    app.Reload();
+                    break;
+                }
+                case IDM_EXIT:
+                    SendMessage(hWnd, WM_CLOSE, 0, 0);
+                    break;
+            }
+            break;
+    }
+    return ScreenSaverProc(hWnd, uMsg, wParam, lParam);
 }
 
 int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrevInst, LPSTR lpCmdLine, int nCmdCount)

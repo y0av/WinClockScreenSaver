@@ -110,7 +110,10 @@ void Application::Draw(HDC hDC)
 	char timeStr[9]; // HH:MM:SS\0
 	std::tm tmResult;
 	localtime_s(&tmResult, &in_time_t);
-	std::strftime(timeStr, sizeof(timeStr), "%H:%M:%S", &tmResult);
+	std::strftime(timeStr, sizeof(timeStr), /* use clock format saved in config */ 
+		 config->clockFormat.c_str()
+		//"%H:%M:%S"
+		, &tmResult);
 
 	// Draw the clock at the center of the screen
 	// Set the background color to black

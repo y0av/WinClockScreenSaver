@@ -9,10 +9,10 @@ Configuration::Configuration()
 	auto path = GetRegistryPath();
 	auto reg = Registry(HKEY_CURRENT_USER, path.c_str(), true);
 	if (reg) {
-		numStars      = reg["NumberOfStars"];
 		fontSize = reg["FontSize"];
 		// Assuming Registry::operator[] returns a type that can be explicitly converted to std::string
 		fontName = static_cast<std::string>(reg["FontName"]); // Explicitly cast to std::string
+		clockFormat = static_cast<std::string>(reg["ClockFormat"]); // Explicitly cast to std::string
 
 	}
 }
@@ -22,9 +22,9 @@ void Configuration::Commit()
 	auto path = GetRegistryPath();
 	auto reg = Registry(HKEY_CURRENT_USER, path.c_str(), false);
 	if (reg) {
-		reg["NumberOfStars"] = numStars;
 		reg["FontSize"] = fontSize;
 		reg["FontName"] = fontName; // Save font name to registry
+		reg["ClockFormat"] = clockFormat; // Save clock format to registry
 	}
 }
 

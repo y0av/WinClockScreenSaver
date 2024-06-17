@@ -9,5 +9,7 @@
 #define IDC_STATIC                      -1
 #define IDC_COMBO_FONTNAME				101 // Ensure this ID is unique within your resource.h file
 #define IDC_STATIC_FONT					102 // Ensure this ID is unique within your resource.h file
+#define IDC_COMBO_CLOCKFORMAT			103 // Ensure this ID is unique within your resource.h file
+#define IDC_STATIC_CLOCKFORMAT			104 // Ensure this ID is unique within your resource.h file
 
 
