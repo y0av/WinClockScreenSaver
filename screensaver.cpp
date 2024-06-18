@@ -1,3 +1,8 @@
+// @author: Yoav Z
+// @website: yoav.xyz
+// @license: MIT
+// @repository: github.com/y0av/WinClockScreenSaver
+
 #include "framework.h"
 #include "screensaver.h"
 #include <set>
