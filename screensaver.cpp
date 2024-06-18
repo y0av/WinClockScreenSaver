@@ -101,7 +101,6 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 
 
 			// Set range of the sliders
-			SendDlgItemMessage(hDlg, IDC_SLIDER_NUMOFSTARS, TBM_SETRANGE, FALSE, MAKELPARAM(50, 1000));
 			SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL, TBM_SETRANGE, FALSE, MAKELPARAM(1, 300));
 
 			// Set position of the sliders
@@ -167,7 +166,7 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 					// Reset all configurations to default value
 					SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL,   TBM_SETPOS, TRUE, 80);
 					SetDlgItemInt(hDlg, IDC_TEXT_INTERVAL,   20,  FALSE);
-					SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_SETCURSEL, 180, 0);
+					SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_SETCURSEL, 25, 0);
 					SendDlgItemMessage(hDlg, IDC_COMBO_CLOCKFORMAT, CB_SETCURSEL, 0, 0);
 					config.gradientStartColor = RGB(132, 112, 255);
 					config.gradientEndColor = RGB(255, 105, 180);

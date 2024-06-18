@@ -16,7 +16,7 @@ Once downloaded, simply right click and select install to set it as your default
 
 ## Screenshots
 
-Below are some screenshots showcasing the Simple Clock Screen Saver in action:
+Below are some screenshots showcasing the Clock Screen Saver in action:
 ![Screenshot 1](https://github.com/y0av/WinClockScreenSaver/blob/main/Images/screenshot1.png?raw=true)
 ![Screenshot 2](https://github.com/y0av/WinClockScreenSaver/blob/main/Images/screenshot2.png?raw=true)
 ![Screenshot 3](https://github.com/y0av/WinClockScreenSaver/blob/main/Images/screenshot3.png?raw=true)

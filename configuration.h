@@ -13,7 +13,7 @@ public:
 
 	// Your screensaver variables, you can set the default value here too
 	int fontSize = 80;
-	std::string fontName = "Roboto Mono"; // Default font name
+	std::string fontName = "Calibri"; // Default font name
 	std::string clockFormat = "%H:%M:%S"; // 24-hour format
 	COLORREF gradientStartColor = RGB(132, 112, 255);  // Light Slate Blue
 	COLORREF gradientEndColor = RGB(255, 105, 180); // Hot Pink
