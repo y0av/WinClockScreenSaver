@@ -1,5 +1,6 @@
 #include "framework.h"
 #include "screensaver.h"
+#include <set>
 #ifndef _DEBUG
 #include <ScrnSave.h>
 #endif
@@ -13,6 +14,7 @@
 
 static Application app;
 static Configuration config;
+std::string lastFontName;
 
 // Use this function if you want to register new window class for the configure
 // dialog, with the hModule parameter as HINSTANCE in CreateWindow function.
@@ -22,11 +24,18 @@ BOOL WINAPI RegisterDialogClasses(HANDLE hModule)
 	return TRUE;
 }
 
+
 // Callback function for EnumFontFamiliesEx
 int CALLBACK EnumFontsProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWORD FontType, LPARAM lParam)
 {
-	HWND hwndCombo = (HWND)lParam;
-	SendMessage(hwndCombo, CB_ADDSTRING, 0, (LPARAM)lpelfe->lfFaceName);
+	// if current font name is different from the last font name
+	if (lastFontName != lpelfe->lfFaceName) {
+		// add the font name to the combo box
+		HWND hwndCombo = (HWND)lParam;
+		SendMessage(hwndCombo, CB_ADDSTRING, 0, (LPARAM)lpelfe->lfFaceName);
+		// save the font name to a variable
+		lastFontName = lpelfe->lfFaceName;
+	}
 	return 1; // Continue enumeration
 }
 
@@ -60,7 +69,7 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 			LOGFONT lf = { 0 };
 			lf.lfCharSet = DEFAULT_CHARSET;
 
-			EnumFontFamiliesEx(hdc, &lf, (FONTENUMPROC)EnumFontsProc, (LPARAM)GetDlgItem(hDlg, IDC_COMBO_FONTNAME), 0); // Corrected variable name here
+			EnumFontFamiliesEx(hdc, &lf, (FONTENUMPROC)EnumFontsProc, (LPARAM)GetDlgItem(hDlg, IDC_COMBO_FONTNAME), 0);
 
 			// Populate the clock format combobox
 			HWND hwndClockFormatCombo = GetDlgItem(hDlg, IDC_COMBO_CLOCKFORMAT);

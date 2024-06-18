@@ -1,12 +1,14 @@
 #include "framework.h"
 #include "screensaver.h"
 #include "registry.h"
+#include <windows.h>
+#include <string>
 #include <vector>
 #include <set>
 
 Configuration::Configuration()
 {
-	std::vector<std::string> GetInstalledFonts();
+	//std::vector<std::string> GetInstalledFonts();
 	auto path = GetRegistryPath();
 	auto reg = Registry(HKEY_CURRENT_USER, path.c_str(), true);
 	if (reg) {
@@ -41,26 +43,26 @@ std::string Configuration::GetRegistryPath()
 	return path;
 }
 
-std::vector<std::string> Configuration::GetInstalledFonts()
-{
-	std::set<std::string> uniqueFonts; // Use std::set to store unique font names
-	// Get the number of installed fonts
-	DWORD numFonts = GetFontData(NULL, 0, 0, NULL, 0);
-	if (numFonts == GDI_ERROR) return std::vector<std::string>(uniqueFonts.begin(), uniqueFonts.end());
-
-	// Allocate memory for the font names
-	std::vector<char> fontData(numFonts);
-	if (GetFontData(NULL, 0, 0, fontData.data(), numFonts) == GDI_ERROR) return std::vector<std::string>(uniqueFonts.begin(), uniqueFonts.end());
-
-	// Parse the font names
-	const char* ptr = fontData.data();
-	while (ptr < fontData.data() + numFonts) {
-		uniqueFonts.insert(ptr); // Insert into set to ensure uniqueness
-		ptr += strlen(ptr) + 1;
-	}
-
-	// Convert set to vector to maintain original method signature
-	std::vector<std::string> fonts(uniqueFonts.begin(), uniqueFonts.end());
-	return fonts;
-}
+//// Callback function for EnumFontFamiliesEx
+//int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX* lpelfe, NEWTEXTMETRICEX* lpntme, DWORD FontType, LPARAM lParam)
+//{
+//	std::set<std::string>* fontNames = reinterpret_cast<std::set<std::string>*>(lParam);
+//	fontNames->insert(lpelfe->elfLogFont.lfFaceName);
+//	return 1; // Continue enumeration
+//}
+//
+//std::vector<std::string> Configuration::GetInstalledFonts()
+//{
+//	std::set<std::string> uniqueFonts;
+//
+//	LOGFONT lf = { 0 };
+//	lf.lfCharSet = DEFAULT_CHARSET;
+//
+//	HDC hdc = GetDC(NULL);
+//	EnumFontFamiliesEx(hdc, &lf, (FONTENUMPROC)EnumFontFamExProc, (LPARAM)&uniqueFonts, 0);
+//	ReleaseDC(NULL, hdc);
+//
+//	std::vector<std::string> fonts(uniqueFonts.begin(), uniqueFonts.end());
+//	return fonts;
+//}
 
