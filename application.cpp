@@ -95,6 +95,12 @@ void Application::DrawBackground(HDC hDC)
 		DeleteObject(hBrush);
 		DeleteObject(hPen);
 	}
+
+	// Draw the clock at the center of the screen
+	// Set the background color to black
+	SetBkColor(hDC, RGB(0, 0, 0));
+	SetBkMode(hDC, TRANSPARENT);
+	SetTextColor(hDC, RGB(255, 255, 255)); // Assuming WHITE is defined as RGB(255, 255, 255)
 }
 
 
@@ -111,15 +117,10 @@ void Application::Draw(HDC hDC)
 	std::tm tmResult;
 	localtime_s(&tmResult, &in_time_t);
 	std::strftime(timeStr, sizeof(timeStr), /* use clock format saved in config */ 
-		 config->clockFormat.c_str()
-		//"%H:%M:%S"
+		 config->clockFormat.c_str() 		//"%H:%M:%S"
 		, &tmResult);
 
-	// Draw the clock at the center of the screen
-	// Set the background color to black
-	SetBkColor(hDC, RGB(0, 0, 0));
-	SetBkMode(hDC, TRANSPARENT);
-	SetTextColor(hDC, RGB(255, 255, 255)); // Assuming WHITE is defined as RGB(255, 255, 255)
+	
 
 
 	SelectObject(hDC, hFont);

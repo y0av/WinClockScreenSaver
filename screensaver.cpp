@@ -35,8 +35,10 @@ int CALLBACK EnumFontsProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWOR
 // Return TRUE if the function successfully process the message.
 BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-	HWND hwndComboBox;
-	int selectedIndex;
+	HWND hwndFormatComboBox;
+	HWND hwndFontNameComboBox;
+	int formatSelectedIndex;
+	int fontSelectedIndex;
 
 	switch (uMsg) {
 		case WM_INITDIALOG: {
@@ -48,12 +50,10 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 			SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL, TBM_SETRANGE, FALSE, MAKELPARAM(1, 300));
 
 			// Set position of the sliders
-			SendDlgItemMessage(hDlg, IDC_SLIDER_NUMOFSTARS, TBM_SETPOS, TRUE, config.numStars);
 			SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL, TBM_SETPOS, TRUE, config.fontSize);
 
 
 			// Set value of the slider texts
-			SetDlgItemInt(hDlg, IDC_TEXT_NUMOFSTARS, config.numStars, FALSE);
 			SetDlgItemInt(hDlg, IDC_TEXT_INTERVAL, config.fontSize, FALSE);
 
 			HDC hdc = GetDC(hDlg); // Corrected variable name here
@@ -66,9 +66,32 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 			HWND hwndClockFormatCombo = GetDlgItem(hDlg, IDC_COMBO_CLOCKFORMAT);
 			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%H:%M:%S");
 			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%H:%M");
-			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%I:%M:%S %p"); // 12-hour format with AM/PM
+			//SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%I:%M:%S %p"); // not sure why but this one is not working
 			SendMessage(hwndClockFormatCombo, CB_ADDSTRING, 0, (LPARAM)"%I:%M %p");    // 12-hour format without seconds
 			SendMessage(hwndClockFormatCombo, CB_SETCURSEL, 0, 0); // Selects the first format by default
+			// set the combo box to the previously selected format
+			for (int i = 0; i < SendMessage(hwndClockFormatCombo, CB_GETCOUNT, 0, 0); i++) {
+				int textLen = SendMessage(hwndClockFormatCombo, CB_GETLBTEXTLEN, (WPARAM)i, 0);
+				std::vector<char> buffer(textLen + 1);
+				SendMessage(hwndClockFormatCombo, CB_GETLBTEXT, (WPARAM)i, (LPARAM)buffer.data());
+				std::string format(buffer.begin(), buffer.end() - 1);
+				if (format == config.clockFormat) {
+					SendMessage(hwndClockFormatCombo, CB_SETCURSEL, i, 0);
+					break;
+				}
+			}
+			// set the combo box to the previously selected font
+			hwndFontNameComboBox = GetDlgItem(hDlg, IDC_COMBO_FONTNAME);
+			for (int i = 0; i < SendMessage(hwndFontNameComboBox, CB_GETCOUNT, 0, 0); i++) {
+				int textLen = SendMessage(hwndFontNameComboBox, CB_GETLBTEXTLEN, (WPARAM)i, 0);
+				std::vector<char> buffer(textLen + 1);
+				SendMessage(hwndFontNameComboBox, CB_GETLBTEXT, (WPARAM)i, (LPARAM)buffer.data());
+				std::string font(buffer.begin(), buffer.end() - 1);
+				if (font == config.fontName) {
+					SendMessage(hwndFontNameComboBox, CB_SETCURSEL, i, 0);
+					break;
+				}
+			}
 
 			ReleaseDC(hDlg, hdc); // Corrected variable name here
 
@@ -76,9 +99,7 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 		}
 		case WM_HSCROLL: {
 			// Link slider texts value with sliders
-			int numStars = SendDlgItemMessage(hDlg, IDC_SLIDER_NUMOFSTARS, TBM_GETPOS, 0, 0);
 			int interval = SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL,   TBM_GETPOS, 0, 0);
-			SetDlgItemInt(hDlg, IDC_TEXT_NUMOFSTARS, numStars, FALSE);
 			SetDlgItemInt(hDlg, IDC_TEXT_INTERVAL, interval, FALSE);
 			return TRUE;
 		}
@@ -86,35 +107,49 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 			switch (LOWORD(wParam)) {
 				case IDC_BUTTON_DEFAULT:
 					// Reset all configurations to default value
-					SendDlgItemMessage(hDlg, IDC_SLIDER_NUMOFSTARS, TBM_SETPOS, TRUE, 250);
 					SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL,   TBM_SETPOS, TRUE, 20);
-					SetDlgItemInt(hDlg, IDC_TEXT_NUMOFSTARS, 250, FALSE);
 					SetDlgItemInt(hDlg, IDC_TEXT_INTERVAL,   20,  FALSE);
 					SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_SETCURSEL, 0, 0);
 
 					return TRUE;
 				case IDOK:
-					config.numStars      = SendDlgItemMessage(hDlg, IDC_SLIDER_NUMOFSTARS, TBM_GETPOS, 0, 0);
 					config.fontSize = SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL,   TBM_GETPOS, 0, 0);
-					// Get the selected font name
-					config.fontName = SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_GETCURSEL, 0, 0);
-					// Get the selected clock format
-					// Assuming hWndDialog is the handle to your dialog window
-					hwndComboBox = GetDlgItem(hDlg, IDC_COMBO_CLOCKFORMAT);
-					selectedIndex = SendMessage(hDlg, CB_GETCURSEL, 0, 0);
 
-					if (selectedIndex != CB_ERR) {
+					// Get the selected clock format
+					hwndFormatComboBox = GetDlgItem(hDlg, IDC_COMBO_CLOCKFORMAT);
+                    formatSelectedIndex = SendMessage(hwndFormatComboBox, CB_GETCURSEL, 0, 0);
+
+					if (formatSelectedIndex != CB_ERR) {
 						// Get the length of the selected item's text
-						int textLen = SendMessage(hwndComboBox, CB_GETLBTEXTLEN, (WPARAM)selectedIndex, 0);
+						int formatTextLen = SendMessage(hwndFormatComboBox, CB_GETLBTEXTLEN, (WPARAM)formatSelectedIndex, 0);
 						// Allocate buffer for the text (+1 for the null terminator)
-						std::vector<char> buffer(textLen + 1);
+						std::vector<char> buffer(formatTextLen + 1);
 						// Retrieve the selected item's text
-						SendMessage(hwndComboBox, CB_GETLBTEXT, (WPARAM)selectedIndex, (LPARAM)buffer.data());
+						SendMessage(hwndFormatComboBox, CB_GETLBTEXT, (WPARAM)formatSelectedIndex, (LPARAM)buffer.data());
 						// Convert to std::string (or std::wstring if using Unicode)
 						std::string selectedFormat(buffer.begin(), buffer.end() - 1); // -1 to exclude the null terminator
 						// Now you can use selectedFormat as needed
 						config.clockFormat = selectedFormat;
 					}
+
+					// do the same like we fetched the clock format to the font name
+										// Get the selected font name
+					hwndFontNameComboBox = GetDlgItem(hDlg, IDC_COMBO_FONTNAME);
+					fontSelectedIndex = SendMessage(hwndFontNameComboBox, CB_GETCURSEL, 0, 0);
+					if (fontSelectedIndex != CB_ERR) {
+						// Get the length of the selected item's text
+						int fontTextLen = SendMessage(hwndFontNameComboBox, CB_GETLBTEXTLEN, (WPARAM)fontSelectedIndex, 0);
+						// Allocate buffer for the text (+1 for the null terminator)
+						std::vector<char> buffer(fontTextLen + 1);
+						// Retrieve the selected item's text
+						SendMessage(hwndFontNameComboBox, CB_GETLBTEXT, (WPARAM)fontSelectedIndex, (LPARAM)buffer.data());
+						// Convert to std::string (or std::wstring if using Unicode)
+						std::string selectedFont(buffer.begin(), buffer.end() - 1); // -1 to exclude the null terminator
+						// Now you can use selectedFont as needed
+						config.fontName = selectedFont;
+					}
+
+
 					config.Commit();
 					// Pass through to next case
 				case IDCANCEL:

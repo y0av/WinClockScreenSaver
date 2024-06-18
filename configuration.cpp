@@ -2,6 +2,7 @@
 #include "screensaver.h"
 #include "registry.h"
 #include <vector>
+#include <set>
 
 Configuration::Configuration()
 {
@@ -42,20 +43,24 @@ std::string Configuration::GetRegistryPath()
 
 std::vector<std::string> Configuration::GetInstalledFonts()
 {
-	std::vector<std::string> fonts;
+	std::set<std::string> uniqueFonts; // Use std::set to store unique font names
 	// Get the number of installed fonts
 	DWORD numFonts = GetFontData(NULL, 0, 0, NULL, 0);
-	if (numFonts == GDI_ERROR) return fonts;
+	if (numFonts == GDI_ERROR) return std::vector<std::string>(uniqueFonts.begin(), uniqueFonts.end());
 
 	// Allocate memory for the font names
 	std::vector<char> fontData(numFonts);
-	if (GetFontData(NULL, 0, 0, fontData.data(), numFonts) == GDI_ERROR) return fonts;
+	if (GetFontData(NULL, 0, 0, fontData.data(), numFonts) == GDI_ERROR) return std::vector<std::string>(uniqueFonts.begin(), uniqueFonts.end());
 
 	// Parse the font names
 	const char* ptr = fontData.data();
 	while (ptr < fontData.data() + numFonts) {
-		fonts.push_back(ptr);
+		uniqueFonts.insert(ptr); // Insert into set to ensure uniqueness
 		ptr += strlen(ptr) + 1;
 	}
+
+	// Convert set to vector to maintain original method signature
+	std::vector<std::string> fonts(uniqueFonts.begin(), uniqueFonts.end());
 	return fonts;
 }
+

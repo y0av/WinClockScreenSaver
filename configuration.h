@@ -12,9 +12,8 @@ public:
 	void Commit();
 
 	// Your screensaver variables, you can set the default value here too
-	int numStars = 250;
-	int fontSize = 40;
-	std::string fontName = "David";
+	int fontSize = 80;
+	std::string fontName = "Roboto Mono";
 	std::string clockFormat = "%H:%M:%S";
 
 private:
