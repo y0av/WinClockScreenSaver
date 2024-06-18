@@ -81,8 +81,6 @@ void Application::DrawBackground(HDC hDC)
 		double ratio = (double)radius / maxRadius;
 
 		COLORREF mixedColor = MixColors(color1, color2, ratio);
-		// mix random color
-		//COLORREF mixedColor = RGB(rand() % 256, rand() % 256, rand() % 256);
 
 		HBRUSH hBrush = CreateSolidBrush(mixedColor);
 		HPEN hPen = CreatePen(PS_SOLID, 1, mixedColor);
@@ -98,9 +96,9 @@ void Application::DrawBackground(HDC hDC)
 
 	// Draw the clock at the center of the screen
 	// Set the background color to black
-	SetBkColor(hDC, RGB(0, 0, 0));
+	//SetBkColor(hDC, RGB(0, 0, 0));
 	SetBkMode(hDC, TRANSPARENT);
-	SetTextColor(hDC, RGB(255, 255, 255)); // Assuming WHITE is defined as RGB(255, 255, 255)
+	SetTextColor(hDC, config->fontColor);
 }
 
 

@@ -11,13 +11,13 @@ Configuration::Configuration()
 	auto path = GetRegistryPath();
 	auto reg = Registry(HKEY_CURRENT_USER, path.c_str(), true);
 	if (reg) {
-		fontSize = reg["FontSize"];
+		fontSize = reg["FontSize"]; // Assuming Registry::operator[] returns an int
 		// Assuming Registry::operator[] returns a type that can be explicitly converted to std::string
 		fontName = static_cast<std::string>(reg["FontName"]); // Explicitly cast to std::string
 		clockFormat = static_cast<std::string>(reg["ClockFormat"]); // Explicitly cast to std::string
-		gradientStartColor = reg["GradientStartColor"];
-		gradientEndColor = reg["GradientEndColor"];
-		fontColor = reg["FontColor"];
+		gradientStartColor = reg["GradientStartColor"]; // Assuming Registry::operator[] returns a COLORREF
+		gradientEndColor = reg["GradientEndColor"]; // Assuming Registry::operator[] returns a COLORREF
+		fontColor = reg["FontColor"]; // Assuming Registry::operator[] returns a COLORREF
 	}
 }
 
@@ -29,9 +29,9 @@ void Configuration::Commit()
 		reg["FontSize"] = fontSize;
 		reg["FontName"] = fontName; // Save font name to registry
 		reg["ClockFormat"] = clockFormat; // Save clock format to registry
-		reg["GradientStartColor"] = gradientStartColor;
-		reg["GradientEndColor"] = gradientEndColor;
-		reg["FontColor"] = fontColor;
+		reg["GradientStartColor"] = gradientStartColor; // Save gradient start color to registry
+		reg["GradientEndColor"] = gradientEndColor; // Save gradient end color to registry
+		reg["FontColor"] = fontColor; // Save font color to registry
 	}
 }
 

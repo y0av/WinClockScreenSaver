@@ -41,6 +41,48 @@ int CALLBACK EnumFontsProc(const LOGFONT* lpelfe, const TEXTMETRIC* lpntme, DWOR
 	return 1; // Continue enumeration
 }
 
+LRESULT CALLBACK ColorButtonSubclassProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam, UINT_PTR uIdSubclass, DWORD_PTR dwRefData)
+{
+	switch (uMsg)
+	{
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		HDC hdc = BeginPaint(hWnd, &ps);
+
+		// Use the color passed through dwRefData as the background
+		COLORREF bgColor = (COLORREF)dwRefData;
+		HBRUSH hBrush = CreateSolidBrush(bgColor);
+
+		// Fill the button area with the background color
+		RECT rect;
+		GetClientRect(hWnd, &rect);
+		FillRect(hdc, &rect, hBrush);
+
+		// Optionally, draw the button text or other decorations here
+
+		DeleteObject(hBrush);
+		EndPaint(hWnd, &ps);
+		return 0;
+	}
+	}
+
+	// For messages that we don't handle, call the default window procedure
+	return DefSubclassProc(hWnd, uMsg, wParam, lParam);
+}
+
+void RefreshColorButtons(HWND hDlg, Configuration config) {
+	// set the color buttons to the previously selected colors
+	HWND hwndGradientStartColorButton = GetDlgItem(hDlg, IDC_COLOR_GRADIENTSTARTCOLOR);
+	// Subclass the button to customize its painting
+	SetWindowSubclass(hwndGradientStartColorButton, ColorButtonSubclassProc, 0, (DWORD_PTR)config.gradientStartColor);
+	HWND hwndGradientEndColorButton = GetDlgItem(hDlg, IDC_COLOR_GRADIENTENDCOLOR);
+	SetWindowSubclass(hwndGradientEndColorButton, ColorButtonSubclassProc, 0, (DWORD_PTR)config.gradientEndColor);
+	HWND hwndFontColorButton = GetDlgItem(hDlg, IDC_COLOR_FONTCOLOR);
+	SetWindowSubclass(hwndFontColorButton, ColorButtonSubclassProc, 0, (DWORD_PTR)config.fontColor);
+}
+
+
 // Handle messages for the screen saver's configuration dialog box. The dialog 
 // template in resource file must have DLG_SCRNSAVECONFIGURE identifier.
 // Return TRUE if the function successfully process the message.
@@ -106,7 +148,10 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 				}
 			}
 
-			ReleaseDC(hDlg, hdc); // Corrected variable name here
+			RefreshColorButtons(hDlg, config);
+			
+
+			ReleaseDC(hDlg, hdc);
 
 			return TRUE;
 		}
@@ -120,9 +165,14 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 			switch (LOWORD(wParam)) {
 				case IDC_BUTTON_DEFAULT:
 					// Reset all configurations to default value
-					SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL,   TBM_SETPOS, TRUE, 20);
+					SendDlgItemMessage(hDlg, IDC_SLIDER_INTERVAL,   TBM_SETPOS, TRUE, 80);
 					SetDlgItemInt(hDlg, IDC_TEXT_INTERVAL,   20,  FALSE);
-					SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_SETCURSEL, 0, 0);
+					SendDlgItemMessage(hDlg, IDC_COMBO_FONTNAME, CB_SETCURSEL, 180, 0);
+					SendDlgItemMessage(hDlg, IDC_COMBO_CLOCKFORMAT, CB_SETCURSEL, 0, 0);
+					config.gradientStartColor = RGB(132, 112, 255);
+					config.gradientEndColor = RGB(255, 105, 180);
+					config.fontColor = RGB(255, 255, 255);
+					RefreshColorButtons(hDlg, config);
 
 					return TRUE;
 				case IDOK:
@@ -168,6 +218,7 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 				case IDCANCEL:
 					EndDialog(hDlg, LOWORD(wParam));
 					return TRUE;
+				// Handle color buttons
 				case (IDC_COLOR_GRADIENTSTARTCOLOR):
 					{
 					CHOOSECOLOR cc = { sizeof(cc) };
@@ -178,8 +229,10 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 					if (ChooseColor(&cc)) {
 						config.gradientStartColor = cc.rgbResult;
 					}
+					RefreshColorButtons(hDlg, config);
 					return TRUE;
 				}
+				// Handle the end color button
 				case (IDC_COLOR_GRADIENTENDCOLOR):
 					{
 					CHOOSECOLOR cc = { sizeof(cc) };
@@ -190,8 +243,10 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 					if (ChooseColor(&cc)) {
 						config.gradientEndColor = cc.rgbResult;
 					}
+					RefreshColorButtons(hDlg, config);
 					return TRUE;
 				}
+				// Handle the font color button
 				case (IDC_COLOR_FONTCOLOR):
 					{
 					CHOOSECOLOR cc = { sizeof(cc) };
@@ -202,6 +257,7 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 					if (ChooseColor(&cc)) {
 						config.fontColor = cc.rgbResult;
 					}
+					RefreshColorButtons(hDlg, config);
 					return TRUE;
 				}
 
