@@ -68,8 +68,8 @@ void Application::DrawBackground(HDC hDC)
 	int height = rect.bottom - rect.top;
 
 	// Define main colors for the gradient
-	COLORREF color1 = RGB(132, 112, 255); // Light Slate Blue
-	COLORREF color2 = RGB(255, 105, 180); // Hot Pink
+	COLORREF color1 = config->gradientStartColor;
+	COLORREF color2 = config->gradientEndColor;
 
 	// Calculate the center and maximum radius for the gradient circles
 	int centerX = width / 2;

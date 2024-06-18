@@ -15,6 +15,9 @@ public:
 	int fontSize = 80;
 	std::string fontName = "Roboto Mono";
 	std::string clockFormat = "%H:%M:%S";
+	COLORREF gradientStartColor = RGB(132, 112, 255);  // Light Slate Blue
+	COLORREF gradientEndColor = RGB(255, 105, 180); // Hot Pink
+	COLORREF fontColor = RGB(255, 255, 255); // White
 
 private:
 	static constexpr LPCSTR REGISTRY_PATH = "Software\\Microsoft\\Windows\\CurrentVersion\\Screensavers";
@@ -22,7 +25,4 @@ private:
 	// Get screensaver path on registry. If you want to rename, modify
 	// IDS_APPNAME value in String Table from the resources.
 	std::string GetRegistryPath();
-
-	// Get the list of installed fonts on the system
-	std::vector<std::string> GetInstalledFonts();
 };

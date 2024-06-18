@@ -8,7 +8,6 @@
 
 Configuration::Configuration()
 {
-	//std::vector<std::string> GetInstalledFonts();
 	auto path = GetRegistryPath();
 	auto reg = Registry(HKEY_CURRENT_USER, path.c_str(), true);
 	if (reg) {
@@ -16,7 +15,9 @@ Configuration::Configuration()
 		// Assuming Registry::operator[] returns a type that can be explicitly converted to std::string
 		fontName = static_cast<std::string>(reg["FontName"]); // Explicitly cast to std::string
 		clockFormat = static_cast<std::string>(reg["ClockFormat"]); // Explicitly cast to std::string
-
+		gradientStartColor = reg["GradientStartColor"];
+		gradientEndColor = reg["GradientEndColor"];
+		fontColor = reg["FontColor"];
 	}
 }
 
@@ -28,6 +29,9 @@ void Configuration::Commit()
 		reg["FontSize"] = fontSize;
 		reg["FontName"] = fontName; // Save font name to registry
 		reg["ClockFormat"] = clockFormat; // Save clock format to registry
+		reg["GradientStartColor"] = gradientStartColor;
+		reg["GradientEndColor"] = gradientEndColor;
+		reg["FontColor"] = fontColor;
 	}
 }
 
@@ -42,27 +46,3 @@ std::string Configuration::GetRegistryPath()
 	path += app;
 	return path;
 }
-
-//// Callback function for EnumFontFamiliesEx
-//int CALLBACK EnumFontFamExProc(ENUMLOGFONTEX* lpelfe, NEWTEXTMETRICEX* lpntme, DWORD FontType, LPARAM lParam)
-//{
-//	std::set<std::string>* fontNames = reinterpret_cast<std::set<std::string>*>(lParam);
-//	fontNames->insert(lpelfe->elfLogFont.lfFaceName);
-//	return 1; // Continue enumeration
-//}
-//
-//std::vector<std::string> Configuration::GetInstalledFonts()
-//{
-//	std::set<std::string> uniqueFonts;
-//
-//	LOGFONT lf = { 0 };
-//	lf.lfCharSet = DEFAULT_CHARSET;
-//
-//	HDC hdc = GetDC(NULL);
-//	EnumFontFamiliesEx(hdc, &lf, (FONTENUMPROC)EnumFontFamExProc, (LPARAM)&uniqueFonts, 0);
-//	ReleaseDC(NULL, hdc);
-//
-//	std::vector<std::string> fonts(uniqueFonts.begin(), uniqueFonts.end());
-//	return fonts;
-//}
-

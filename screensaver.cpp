@@ -1,6 +1,8 @@
 #include "framework.h"
 #include "screensaver.h"
 #include <set>
+#include <windows.h>
+#include <commdlg.h>
 #ifndef _DEBUG
 #include <ScrnSave.h>
 #endif
@@ -53,6 +55,8 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 		case WM_INITDIALOG: {
 			// Initialize the configuration
 			config = Configuration();
+
+
 
 			// Set range of the sliders
 			SendDlgItemMessage(hDlg, IDC_SLIDER_NUMOFSTARS, TBM_SETRANGE, FALSE, MAKELPARAM(50, 1000));
@@ -164,6 +168,43 @@ BOOL WINAPI ScreenSaverConfigureDialog(HWND hDlg, UINT uMsg, WPARAM wParam, LPAR
 				case IDCANCEL:
 					EndDialog(hDlg, LOWORD(wParam));
 					return TRUE;
+				case (IDC_COLOR_GRADIENTSTARTCOLOR):
+					{
+					CHOOSECOLOR cc = { sizeof(cc) };
+					COLORREF acrCustClr[16];
+					cc.lpCustColors = acrCustClr;
+					cc.rgbResult = config.gradientStartColor;
+					cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+					if (ChooseColor(&cc)) {
+						config.gradientStartColor = cc.rgbResult;
+					}
+					return TRUE;
+				}
+				case (IDC_COLOR_GRADIENTENDCOLOR):
+					{
+					CHOOSECOLOR cc = { sizeof(cc) };
+					COLORREF acrCustClr[16];
+					cc.lpCustColors = acrCustClr;
+					cc.rgbResult = config.gradientEndColor;
+					cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+					if (ChooseColor(&cc)) {
+						config.gradientEndColor = cc.rgbResult;
+					}
+					return TRUE;
+				}
+				case (IDC_COLOR_FONTCOLOR):
+					{
+					CHOOSECOLOR cc = { sizeof(cc) };
+					COLORREF acrCustClr[16];
+					cc.lpCustColors = acrCustClr;
+					cc.rgbResult = config.fontColor;
+					cc.Flags = CC_FULLOPEN | CC_RGBINIT;
+					if (ChooseColor(&cc)) {
+						config.fontColor = cc.rgbResult;
+					}
+					return TRUE;
+				}
+
 			}
 			break;
 	}
